@@ -1,0 +1,4 @@
+feedparser
+httpx
+loguru
+sqlmodel
