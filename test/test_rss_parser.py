@@ -34,6 +34,9 @@ class TestCrawler(unittest.TestCase):
         return super().setUp()
     
     def test_crawler(self):
-        res = asyncio.run(self.crawler.update_subscribe())
+        res = asyncio.run(self.crawler.get_subscribe())
         logger.info(res)
 
+    def test_crawler_and_record(self):
+        res = asyncio.run(self.crawler.update_subscribe())
+        logger.info(res)

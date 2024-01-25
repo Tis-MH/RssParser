@@ -1,10 +1,12 @@
 import asyncio
 import datetime
+import itertools
 import httpx
 import feedparser
-from typing import Optional
+from typing import Dict, List, Optional
 from sqlmodel import Field, SQLModel, create_engine, Session, select
 import json
+import abc
 from pprint import pprint
 from sqlmodel import Field, SQLModel, create_engine, Session, ForeignKey
 
@@ -95,20 +97,40 @@ class Database:
 class Crawler:
     def __init__(self) -> None:
         self.database = Database()
+    
+    def check_constructor(self):
+        name_list = [item['name'] for item in self.database.get_subscribe()]
+    
+    def construct_entity(self, xml_entity: dict) -> Entity:
+        pass
         
-    async def update_subscribe(self):
+    async def get_subscribe(self):
         li = []
-        for entity in self.database.get_subscribe():
+        for rss in self.database.get_subscribe():
             li.append({
-                'id': entity.id,
-                'entity': entity,
-                'parser': Parser(entity.url),
+                'id': rss.id,
+                'entity': rss,
+                'parser': Parser(rss.url),
             })
         
-        res = await asyncio.gather(*[i['parser'].parser() for i in li])
-        print(res)
-        return res
+        await asyncio.gather(*[i['parser'].parser() for i in li])
+        return li
     
+    def update_record(self, website_id):
+        record = UpdateRecord(website_id=website_id, update_time=datetime.datetime.now())
+        self.database.session.add(record)
+        self.database.session.commit()
+    
+    async def update_subscribe(self):
+        items = await self.get_subscribe()
+        groups = itertools.groupby(items, lambda x: x['id'])
+        for group in groups:
+            sql_entites = [self.construct_entity(item['entity']) for item in group]
+            self.database.session.add_all(sql_entites)
+            self.database.session.add(UpdateRecord(website_id=group[0]['id'], update_time=datetime.datetime.now()))
+            self.database.session.commit()
+        
+        
 # par1 = Parser('https://nyaa.si/?page=rss')
 # par2 = Parser('https://share.acgnx.se/rss.xml')
 
