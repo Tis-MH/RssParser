@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 import unittest
 import os
 from loguru import logger
@@ -26,7 +27,7 @@ class TestDataBase(unittest.TestCase):
         for i in db.get_subscribe():
             print(i)
             
-class TestCrawler(unittest.TestCase):
+class TestCrawler(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         logger.add("log/TestCrawler_{time}.log")
         self.db = Database()
@@ -40,3 +41,13 @@ class TestCrawler(unittest.TestCase):
     def test_crawler_and_record(self):
         res = asyncio.run(self.crawler.update_subscribe())
         logger.info(res)
+        
+    async def test_subscribe_grps(self):
+        import itertools
+        items = await self.crawler.get_subscribe()
+        for website in items:
+            sql_entities = [self.crawler.construct_entity(website['entity'].name, item) for item in website['parser'].entity.entries]
+            logger.info(sql_entities)
+            
+    async def test_update_subscribe(self):
+        await self.crawler.update_subscribe()

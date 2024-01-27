@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+from inspect import isclass
 import itertools
 import httpx
 import feedparser
@@ -9,6 +10,7 @@ import json
 import abc
 from pprint import pprint
 from sqlmodel import Field, SQLModel, create_engine, Session, ForeignKey
+import importlib
 
 
 class SubscribeWebsite(SQLModel, table=True):
@@ -97,12 +99,18 @@ class Database:
 class Crawler:
     def __init__(self) -> None:
         self.database = Database()
-    
+        self.crawler_modules = importlib.import_module('rss_entity')
+        self.crawler_list = [x for x in dir(self.crawler_modules) if isclass(getattr(self.crawler_modules, x))]
+        self.check_constructor()
+
     def check_constructor(self):
-        name_list = [item['name'] for item in self.database.get_subscribe()]
-    
-    def construct_entity(self, xml_entity: dict) -> Entity:
-        pass
+        name_list = [item.name for item in self.database.get_subscribe()]
+        for i in name_list:
+            if i not in self.crawler_list:
+                raise Exception(f'Construct Entity: <{i}> is not implement, please define entity in "rss_entity.py".') 
+
+    def construct_entity(self, entity_type, xml_entity: dict) -> Entity:
+        return getattr(self.crawler_modules, entity_type)(xml_entity).get_entity()
         
     async def get_subscribe(self):
         li = []
@@ -123,14 +131,12 @@ class Crawler:
     
     async def update_subscribe(self):
         items = await self.get_subscribe()
-        groups = itertools.groupby(items, lambda x: x['id'])
-        for group in groups:
-            sql_entites = [self.construct_entity(item['entity']) for item in group]
-            self.database.session.add_all(sql_entites)
-            self.database.session.add(UpdateRecord(website_id=group[0]['id'], update_time=datetime.datetime.now()))
+        for website in items:
+            sql_entities = [self.construct_entity(website['entity'].name, item) for item in website['parser'].entity.entries]
+            self.database.session.add_all(sql_entities)  # 每一个组的对象加入数据库, TODO 考虑重复问题
+            self.database.session.add(UpdateRecord(website_id=website['id'], update_time=datetime.datetime.now()))  # 更新完一个组(RSS网站)后记录已经更新过的信息
             self.database.session.commit()
-        
-        
+
 # par1 = Parser('https://nyaa.si/?page=rss')
 # par2 = Parser('https://share.acgnx.se/rss.xml')
 
