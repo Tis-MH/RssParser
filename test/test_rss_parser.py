@@ -6,6 +6,7 @@ from loguru import logger
 import sys
 
 sys.path.append(f'{os.getcwd()}')
+# os.chdir('../')
 
 from rss_parser import Crawler, Database
 

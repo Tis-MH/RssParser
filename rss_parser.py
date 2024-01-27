@@ -28,8 +28,7 @@ class UpdateRecord(SQLModel, table=True):
 
 
 class Entity(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str
+    title: str = Field(primary_key=True)
     magnet: str
     upload_time: Optional[datetime.datetime]
     category: Optional[str]
@@ -132,9 +131,11 @@ class Crawler:
     async def update_subscribe(self):
         items = await self.get_subscribe()
         for website in items:
-            sql_entities = [self.construct_entity(website['entity'].name, item) for item in
-                            website['parser'].entity.entries]
-            self.database.session.add_all(sql_entities)  # 每一个组的对象加入数据库, TODO 考虑重复问题
+            sql_entities = []
+            for i in website['parser'].entity.entries:
+                if self.database.session.get(Entity, i['title']) is None:  # is exists, pass
+                    sql_entities.append(self.construct_entity(website['entity'].name, i))
+            self.database.session.add_all(sql_entities)  # 每一个组的对象加入数据库
             self.database.session.add(
                 UpdateRecord(website_id=website['id'], update_time=datetime.datetime.now()))  # 更新完一个组(RSS网站)后记录已经更新过的信息
             self.database.session.commit()
@@ -143,10 +144,10 @@ class Crawler:
 # par1 = Parser('https://nyaa.si/?page=rss')
 # par2 = Parser('https://share.acgnx.se/rss.xml')
 
-if __name__ == "__main__":
-    db = Database()
-    for i in db.get_subscribe():
-        print(i)
-    # db.delete_subscribe(2)
-    # db.add_subscribe('nyaa', 'https://nyaa.si/?page=rss')
-    # db.add_subscribe('acgnx', 'https://share.acgnx.se/rss.xml')
+# if __name__ == "__main__":
+#     db = Database()
+#     for i in db.get_subscribe():
+#         print(i)
+#     db.delete_subscribe(2)
+#     db.add_subscribe('nyaa', 'https://nyaa.si/?page=rss')
+#     db.add_subscribe('acgnx', 'https://share.acgnx.se/rss.xml')
