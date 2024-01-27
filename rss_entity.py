@@ -43,11 +43,11 @@ class nyaa(RSSEntity):
         return self.entity.get('title')
     
     def magnet(self) -> str:
-        return self.entity.get('nyaa_infohash')
+        return "magnet:?xt=urn:btih:" + self.entity.get('nyaa_infohash')
 
     def upload_time(self) -> datetime | None:
         published = self.entity.get('published_parsed')
-        return  datetime(*published[:6]) if published else None
+        return datetime(*published[:6]) if published else None
         # return time.strftime("%Y-%m-%d %H:%M:%S", published) if published else None
     
     def category(self) -> str | None:
@@ -68,7 +68,7 @@ class acgnx(RSSEntity):
 
     def upload_time(self) -> datetime | None:
         published = self.entity.get('published_parsed')
-        return  datetime(*published[:6]) if published else None
+        return datetime(*published[:6]) if published else None
         # return time.strftime("%Y-%m-%d %H:%M:%S", published) if published else None
     
     def category(self) -> str | None:
