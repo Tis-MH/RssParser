@@ -1,6 +1,6 @@
 import abc
 from datetime import datetime
-from rss_parser import Entity
+from schema import Entity
 
 class RSSEntity:
     def __init__(self, entity: dict) -> None:

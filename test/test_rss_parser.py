@@ -1,14 +1,13 @@
 import asyncio
-import importlib
 import unittest
 import os
 from loguru import logger
 import sys
 
 sys.path.append(f'{os.getcwd()}')
-# os.chdir('../')
+os.chdir('../')
 
-from rss_parser import Crawler, Database
+from RssParser.rss_parser import Crawler, Database
 
 
 class TestDataBase(unittest.TestCase):
@@ -45,7 +44,6 @@ class TestCrawler(unittest.IsolatedAsyncioTestCase):
         logger.info(res)
 
     async def test_subscribe_grps(self):
-        import itertools
         items = await self.crawler.get_subscribe()
         for website in items:
             sql_entities = [self.crawler.construct_entity(website['entity'].name, item) for item in
