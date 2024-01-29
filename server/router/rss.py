@@ -1,28 +1,35 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-
+from RssParser import schema
+from server.modules.base import TResult
+from server.modules.rss import Rss
 # from ..dependencies import get_token_header
 
 router = APIRouter(
-    prefix="/items",
-    tags=["items"],
+    prefix="/rss",
+    tags=["rss"],
     # dependencies=[Depends(get_token_header)],
     responses={404: {"description": "Not found"}},
 )
 
+database = schema.Database()
 
-fake_items_db = {"plumbus": {"name": "Plumbus"}, "gun": {"name": "Portal Gun"}}
 
-
-@router.get("/")
+@router.get("/", response_model=TResult[List[Rss]])
 async def read_items():
-    return fake_items_db
+    items = [item.model_dump() for item in database.get_subscribe()]
+    return {
+        'code': 200,
+        'res': items
+    }
+        
 
 
-@router.get("/{item_id}")
-async def read_item(item_id: str):
-    if item_id not in fake_items_db:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return {"name": fake_items_db[item_id]["name"], "item_id": item_id}
+# @router.get("/{item_id}")
+# async def read_item(item_id: str):
+#     if item_id not in fake_items_db:
+#         raise HTTPException(status_code=404, detail="Item not found")
+#     return {"name": fake_items_db[item_id]["name"], "item_id": item_id}
 
 
 @router.put(
