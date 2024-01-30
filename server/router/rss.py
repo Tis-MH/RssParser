@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from RssParser import schema
 from server.modules.base import TResult
 from server.modules.rss import Rss
+from sqlalchemy.exc import NoResultFound
 # from ..dependencies import get_token_header
 
 router = APIRouter(
@@ -24,22 +25,45 @@ async def read_items():
     }
         
 
+@router.patch("/", response_model=TResult[str])
+async def change_status(subscribe_id: int, status: bool):
+    try:
+        entity = database.session.get_one(schema.SubscribeWebsite, subscribe_id)
+    except NoResultFound:
+        return {
+            'code': 50001,
+            'res': 'not found'
+        }
+    entity.update = status
+    database.session.add(entity)
+    database.session.commit()
+    return {
+        'code': 200,
+        'res': 'success'
+    }
 
-# @router.get("/{item_id}")
-# async def read_item(item_id: str):
-#     if item_id not in fake_items_db:
-#         raise HTTPException(status_code=404, detail="Item not found")
-#     return {"name": fake_items_db[item_id]["name"], "item_id": item_id}
+@router.post("/", response_model=TResult[int])
+async def create_subscribe(name: str, url: str, interval: int | None = None, update: bool = True):
+    entity = schema.SubscribeWebsite(name=name, url=url, interval=interval, update=update)
+    database.session.add(entity)
+    database.session.commit()
+    return {
+        'code': 200,
+        'res': entity.id
+    }
 
-
-@router.put(
-    "/{item_id}",
-    tags=["custom"],
-    responses={403: {"description": "Operation forbidden"}},
-)
-async def update_item(item_id: str):
-    if item_id != "plumbus":
-        raise HTTPException(
-            status_code=403, detail="You can only update the item: plumbus"
-        )
-    return {"item_id": item_id, "name": "The great Plumbus"}
+@router.delete("/", response_model=TResult[str])
+async def delete_subscribe(subscribe_id: int):
+    try:
+        entity = database.session.get_one(schema.SubscribeWebsite, subscribe_id)
+    except NoResultFound:
+        return {
+            'code': 50001,
+            'res': 'not found'
+        }
+    database.session.delete(entity)
+    database.session.commit()
+    return {
+        'code': 200,
+        'res': 'success'
+    }
