@@ -4,7 +4,7 @@ from fastapi import FastAPI
 import uvicorn
 from uvicorn import run
 
-from router.rss import router
+from server.router.subscribe import router
 
 app = FastAPI()
 
