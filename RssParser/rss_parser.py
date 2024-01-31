@@ -9,7 +9,9 @@ import json
 import abc
 from pprint import pprint
 import importlib
-from schema import SubscribeWebsite, UpdateRecord, Entity, Database
+
+from loguru import logger
+from RssParser.schema import SubscribeWebsite, UpdateRecord, Entity, Database
 
 
 class Parser:
@@ -40,7 +42,7 @@ class Parser:
 class Crawler:
     def __init__(self) -> None:
         self.database = Database()
-        self.crawler_modules = importlib.import_module('rss_entity')
+        self.crawler_modules = importlib.import_module('RssParser.rss_entity')
         self.crawler_list = [x for x in dir(self.crawler_modules) if isclass(getattr(self.crawler_modules, x))]
         self.check_constructor()
 
@@ -81,6 +83,7 @@ class Crawler:
             self.database.session.add(
                 UpdateRecord(website_id=website['id'], update_time=datetime.datetime.now()))  # 更新完一个组(RSS网站)后记录已经更新过的信息
             self.database.session.commit()
+            logger.info(f'update {website} success')
 
 # par1 = Parser('https://nyaa.si/?page=rss')
 # par2 = Parser('https://share.acgnx.se/rss.xml')

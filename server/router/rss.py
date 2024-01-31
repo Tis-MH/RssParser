@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import select
 from RssParser import schema
 from server.modules.base import TResult
 from server.modules.rss import Rss
@@ -18,13 +19,14 @@ database = schema.Database()
 
 @router.get("/", response_model=TResult[List[Rss]])
 async def read_items():
-    items = [item.model_dump() for item in database.get_subscribe()]
+    # items = [item.model_dump() for item in database.get_subscribe()]
+    execution = select(schema.SubscribeWebsite).where(schema.SubscribeWebsite.update == True)
+    items = [item.model_dump() for item in database.session.exec(execution)]
     return {
         'code': 200,
         'res': items
     }
-        
-
+   
 @router.patch("/", response_model=TResult[str])
 async def change_status(subscribe_id: int, status: bool):
     try:
