@@ -76,3 +76,34 @@ class acgnx(RSSEntity):
     
     def size(self) -> str | None:
         return super().size()
+    
+class dmhy(RSSEntity):
+    def __init__(self, entity: dict) -> None:
+        super().__init__(entity)
+        
+    def title(self) -> str:
+        return self.entity.get('title')
+    
+    def magnet(self) -> str:
+        return self.entity.get('links')[1]['href']
+    
+    def upload_time(self) -> str | None:
+        published = self.entity.get('published_parsed')
+        return datetime(*published[:6]) if published else None
+    
+    def category(self) -> str | None:
+        return super().category()
+    
+    def size(self) -> str | None:
+        return super().size()
+    
+def destruction_entity(obj: object, url: str):  # 将实体和url传到这里进行 debug 和 开发
+    import feedparser
+    entity = feedparser.parse(url)
+    obj = obj(entity['entries'][0])
+    res = obj.get_entity()
+
+    
+# for test
+if __name__ == "__main__":
+    destruction_entity(dmhy, 'https://dmhy.org/topics/rss/rss.xml')

@@ -43,7 +43,7 @@ class Crawler:
     def __init__(self) -> None:
         self.database = Database()
         self.crawler_modules = importlib.import_module('RssParser.rss_entity')
-        self.crawler_list = [x for x in dir(self.crawler_modules) if isclass(getattr(self.crawler_modules, x))]
+        self.crawler_list = [x for x in dir(self.crawler_modules) if isclass(getattr(self.crawler_modules, x))]  # all implement class in model
         self.check_constructor()
 
     def check_constructor(self):
@@ -77,7 +77,7 @@ class Crawler:
         for website in items:
             sql_entities = []
             for i in website['parser'].entity.entries:
-                if self.database.session.get(Entity, i['title']) is None:  # is exists, pass
+                if self.database.session.get(Entity, i['title']) is None:  # was existed, pass
                     sql_entities.append(self.construct_entity(website['entity'].name, i))
             self.database.session.add_all(sql_entities)  # 每一个组的对象加入数据库
             self.database.session.add(
@@ -95,3 +95,5 @@ class Crawler:
 #     db.delete_subscribe(2)
 #     db.add_subscribe('nyaa', 'https://nyaa.si/?page=rss')
 #     db.add_subscribe('acgnx', 'https://share.acgnx.se/rss.xml')
+if __name__ == "__main__":
+    pass
