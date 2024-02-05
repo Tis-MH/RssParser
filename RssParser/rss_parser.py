@@ -12,6 +12,7 @@ import importlib
 
 from loguru import logger
 from RssParser.schema import SubscribeWebsite, UpdateRecord, Entity, Database
+import config
 
 
 class Parser:
@@ -23,7 +24,7 @@ class Parser:
         self.link = link
 
     def client(self):
-        return httpx.AsyncClient(proxy="http://localhost:7890")
+        return httpx.AsyncClient(proxy=config.proxy)
 
     async def get(self):
         async with self.client() as client:
