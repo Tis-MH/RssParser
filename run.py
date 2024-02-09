@@ -1,6 +1,7 @@
 import asyncio
 from RssParser import rss_parser
 from time import sleep
+import config
 from loguru import logger
 
 logger.add("log/file_1.log", rotation="10 MB")
@@ -14,4 +15,4 @@ async def main():
 if __name__ == "__main__":
     while True:
         asyncio.run(main())
-        sleep(1440)
+        sleep(config.interval)

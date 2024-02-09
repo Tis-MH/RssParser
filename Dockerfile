@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:slim
 
 WORKDIR /code
 
@@ -13,4 +13,4 @@ RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ENV PYTHONPATH="/code/"
 ENTRYPOINT [ "python3", "run.py" ]
 
-# docker rm test && docker run --name test -v ./sqlite3.sql:/code/sqlite3.sql test:test
+# docker rm test && docker run --rm --name test -v ./sqlite3.sql:/code/sqlite3.sql rss_crawler:slim
