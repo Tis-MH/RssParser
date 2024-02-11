@@ -80,11 +80,12 @@ class Crawler:
             for i in website['parser'].entity.entries:
                 if self.database.session.get(Entity, i['title']) is None:  # was existed, pass
                     sql_entities.append(self.construct_entity(website['entity'].name, i))
-            self.database.session.add_all(sql_entities)  # 每一个组的对象加入数据库
+            # self.database.session.add_all(sql_entities)  # 每一个组的对象加入数据库
+            for i in sql_entities:
+                self.database.session.merge(i)
             self.database.session.add(
                 UpdateRecord(website_id=website['id'], update_time=datetime.datetime.now()))  # 更新完一个组(RSS网站)后记录已经更新过的信息
-            # self.database.session.commit()
-            self.database.session.merge()
+            self.database.session.commit()
             logger.info(f'update {website} success')
 
 # par1 = Parser('https://nyaa.si/?page=rss')
