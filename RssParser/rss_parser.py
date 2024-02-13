@@ -28,7 +28,23 @@ class Parser:
 
     async def get(self):
         async with self.client() as client:
-            res = await client.get(self.link)
+            try:
+                res = await client.get(self.link)
+            except httpx.ConnectTimeout:
+                max_retry = 5
+                i = 0
+                while True:
+                    i += 1
+                    logger.warning(f'get {self.link} timeout, retry times: {i}; max is {max_retry}.')
+                    asyncio.sleep(1)
+                    try:
+                        res = await client.get(self.link)
+                        break
+                    except httpx.ConnectTimeout:
+                        if i >= max_retry:
+                            logger.error(f'try {max_retry} failed, timeout')
+                            raise httpx.ConnectTimeout
+                    
             self.xml = res.text
 
     def html_parser(self):
