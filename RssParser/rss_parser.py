@@ -24,7 +24,8 @@ class Parser:
         self.link = link
 
     def client(self):
-        return httpx.AsyncClient(proxy=config.proxy)
+        transport = httpx.AsyncHTTPTransport(retries=4)
+        return httpx.AsyncClient(proxy=config.proxy, transport=transport)
 
     async def get(self):
         async with self.client() as client:
