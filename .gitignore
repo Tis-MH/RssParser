@@ -2,3 +2,4 @@ venv
 log
 __pycache__
 .idea
+sqlite3.sql
