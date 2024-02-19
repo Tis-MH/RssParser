@@ -29,7 +29,15 @@ class Parser:
 
     async def get(self):
         async with self.client() as client:
-            res = await client.get(self.link)
+            retries = 0
+            while True:
+                try:
+                    retries += 1
+                    res = await client.get(self.link)
+                    break
+                except httpx.ReadTimeout:
+                    if retries > 3:
+                        raise httpx.ReadTimeout
             self.xml = res.text
 
     def html_parser(self):
