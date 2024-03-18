@@ -1,3 +1,5 @@
+import os, sys
+sys.path.append(os.getcwd())
 import asyncio
 from RssParser import rss_parser
 from time import sleep
