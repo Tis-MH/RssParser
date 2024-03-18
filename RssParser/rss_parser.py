@@ -33,15 +33,21 @@ class Parser:
             while True:
                 try:
                     retries += 1
+                    logger.info(f"try to get: {self.link}...")
                     res = await client.get(self.link)
+                    logger.info(f"get {self.link} success")
                     break
                 except httpx.ReadTimeout:
+                    logger.warning(f"get {self.link} timeout, retry: {retries}/{3} ...")
                     if retries > 3:
+                        logger.error(f"get {self.link} Timeout")
                         raise httpx.ReadTimeout
             self.xml = res.text
 
     def html_parser(self):
+        logger.info("parse xml")
         self.entity = feedparser.parse(self.xml)
+        logger.info("parser done")
 
     async def parser(self):
         await self.get()
