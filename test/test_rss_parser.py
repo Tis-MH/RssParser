@@ -1,11 +1,10 @@
+import os, sys
+sys.path.append(f'{os.getcwd()}')
 import asyncio
 import unittest
-import os
 from loguru import logger
-import sys
 
-sys.path.append(f'{os.getcwd()}')
-os.chdir('../')
+# os.chdir('../')
 
 from RssParser.rss_parser import Crawler, Database
 

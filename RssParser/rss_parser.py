@@ -12,7 +12,7 @@ import importlib
 
 from loguru import logger
 from RssParser.schema import SubscribeWebsite, UpdateRecord, Entity, Database
-import config
+import RssParser.config as config
 
 
 class Parser:
@@ -102,6 +102,7 @@ class Crawler:
                 UpdateRecord(website_id=website['id'], update_time=datetime.datetime.now()))  # 更新完一个组(RSS网站)后记录已经更新过的信息
             self.database.session.commit()
             logger.info(f'update {website} success')
+        logger.info("update all done")
 
 # par1 = Parser('https://nyaa.si/?page=rss')
 # par2 = Parser('https://share.acgnx.se/rss.xml')
