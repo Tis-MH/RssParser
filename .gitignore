@@ -3,3 +3,5 @@ log
 __pycache__
 .idea
 sqlite3.sql
+
+frontend/node_modules/*

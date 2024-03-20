@@ -2,3 +2,5 @@ feedparser
 httpx
 loguru
 sqlmodel
+fastapi
+uvicorn[standard]
