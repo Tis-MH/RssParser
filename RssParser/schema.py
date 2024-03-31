@@ -23,6 +23,13 @@ class Entity(SQLModel, table=True):
     category: Optional[str]
     size: Optional[str]
 
+class Info(SQLModel, table=True):
+    entity_title: str
+    title: str
+    episode: int
+    season: str
+    
+
 
 class Database:
     def __init__(self) -> None:
