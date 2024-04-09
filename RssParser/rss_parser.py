@@ -42,6 +42,11 @@ class Parser:
                     if retries > 3:
                         logger.error(f"get {self.link} Timeout")
                         raise httpx.ReadTimeout
+                except httpx.ConnectTimeout:
+                    logger.warning(f"get {self.link} timeout, retry: {retries}/{3} ...")
+                    if retries > 3:
+                        logger.error(f"get {self.link} Timeout")
+                        raise httpx.ReadTimeout
             self.xml = res.text
 
     def html_parser(self):
@@ -58,15 +63,21 @@ class Parser:
 class Crawler:
     def __init__(self) -> None:
         self.database = Database()
-        self.crawler_modules = importlib.import_module('RssParser.rss_entity')
-        self.crawler_list = [x for x in dir(self.crawler_modules) if isclass(getattr(self.crawler_modules, x))]  # all implement class in model
+        self.crawler_modules = importlib.import_module("RssParser.rss_entity")
+        self.crawler_list = [
+            x
+            for x in dir(self.crawler_modules)
+            if isclass(getattr(self.crawler_modules, x))
+        ]  # all implement class in model
         self.check_constructor()
 
     def check_constructor(self):
         name_list = [item.name for item in self.database.get_subscribe()]
         for i in name_list:
             if i not in self.crawler_list:
-                raise Exception(f'Construct Entity: <{i}> is not implement, please define entity in "rss_entity.py".')
+                raise Exception(
+                    f'Construct Entity: <{i}> is not implement, please define entity in "rss_entity.py".'
+                )
 
     def construct_entity(self, entity_type, xml_entity: dict) -> Entity:
         return getattr(self.crawler_modules, entity_type)(xml_entity).get_entity()
@@ -74,17 +85,21 @@ class Crawler:
     async def get_subscribe(self):
         li = []
         for rss in self.database.get_subscribe():
-            li.append({
-                'id': rss.id,
-                'entity': rss,
-                'parser': Parser(rss.url),
-            })
+            li.append(
+                {
+                    "id": rss.id,
+                    "entity": rss,
+                    "parser": Parser(rss.url),
+                }
+            )
 
-        await asyncio.gather(*[i['parser'].parser() for i in li])
+        await asyncio.gather(*[i["parser"].parser() for i in li])
         return li
 
     def update_record(self, website_id):
-        record = UpdateRecord(website_id=website_id, update_time=datetime.datetime.now())
+        record = UpdateRecord(
+            website_id=website_id, update_time=datetime.datetime.now()
+        )
         self.database.session.add(record)
         self.database.session.commit()
 
@@ -92,17 +107,25 @@ class Crawler:
         items = await self.get_subscribe()
         for website in items:
             sql_entities = []
-            for i in website['parser'].entity.entries:
-                if self.database.session.get(Entity, i['title']) is None:  # was existed, pass
-                    sql_entities.append(self.construct_entity(website['entity'].name, i))
+            for i in website["parser"].entity.entries:
+                if (
+                    self.database.session.get(Entity, i["title"]) is None
+                ):  # was existed, pass
+                    sql_entities.append(
+                        self.construct_entity(website["entity"].name, i)
+                    )
             # self.database.session.add_all(sql_entities)  # 每一个组的对象加入数据库
             for i in sql_entities:
                 self.database.session.merge(i)
             self.database.session.add(
-                UpdateRecord(website_id=website['id'], update_time=datetime.datetime.now()))  # 更新完一个组(RSS网站)后记录已经更新过的信息
+                UpdateRecord(
+                    website_id=website["id"], update_time=datetime.datetime.now()
+                )
+            )  # 更新完一个组(RSS网站)后记录已经更新过的信息
             self.database.session.commit()
-            logger.info(f'update {website} success')
+            logger.info(f"update {website} success")
         logger.info("update all done")
+
 
 # par1 = Parser('https://nyaa.si/?page=rss')
 # par2 = Parser('https://share.acgnx.se/rss.xml')
