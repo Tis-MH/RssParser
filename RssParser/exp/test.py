@@ -72,13 +72,15 @@ def download_rss(url: str, save_path="./result", max_retries=3):
 def download_all():
     websites = session.query(SubscribeWebsite).where(SubscribeWebsite.enable == True)
     for website in websites:
-        file_hash = download_rss(website.url)
-        record = SubscribeRecord(
-            id=file_hash, update_time=datetime.now(), website_id=website.id
-        )
-        session.add(record)
-        session.commit()
-
+        try:
+            file_hash = download_rss(website.url)
+            record = SubscribeRecord(
+                id=file_hash, update_time=datetime.now(), website_id=website.id
+            )
+            session.add(record)
+            session.commit()
+        except Exception as e:
+            logger.error(f"download {website.url} raise a error: {str(e)}")
 
 def add_subscribe():
     subscibes = [SubscribeWebsite(
