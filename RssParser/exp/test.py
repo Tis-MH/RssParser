@@ -95,6 +95,11 @@ Base.metadata.create_all(engine)
 # session.add(website)
 # session.commit()
 
-add_subscribe()
+# add_subscribe()
+from time import sleep
+while True:
+    download_all()
+    sleep(3600)
+
 # download_all()
 # download_rss("https://dmhy.org/topics/rss/rss.xml")
